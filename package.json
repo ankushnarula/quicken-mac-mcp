@@ -37,7 +37,7 @@
     "format:check": "prettier --check 'src/**/*.ts'",
     "test": "vitest run",
     "test:watch": "vitest",
-    "pack:mcpb": "mcpb pack"
+    "pack:mcpb": "./scripts/pack-mcpb.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
