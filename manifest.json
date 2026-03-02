@@ -1,0 +1,70 @@
+{
+  "manifest_version": "0.3",
+  "name": "quicken-mac-mcp",
+  "display_name": "Quicken For Mac",
+  "version": "1.0.0",
+  "description": "Read-only access to your Quicken For Mac financial data",
+  "author": { "name": "David Weekly", "url": "https://github.com/dweekly" },
+  "homepage": "https://dweekly.github.io/quicken-mac-mcp/",
+  "repository": "https://github.com/dweekly/quicken-mac-mcp",
+  "icon": "icon.png",
+  "license": "MIT",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "QUICKEN_DB_PATH": "${user_config.database_path}"
+      }
+    }
+  },
+  "user_config": {
+    "database_path": {
+      "type": "string",
+      "title": "Database Path",
+      "description": "Path to your .quicken/data file. Leave empty to auto-detect from ~/Documents.",
+      "required": false,
+      "default": ""
+    }
+  },
+  "tools": [
+    {
+      "name": "list_accounts",
+      "description": "List all Quicken accounts with name, type, and active/closed status. Optionally filter by account type."
+    },
+    {
+      "name": "list_categories",
+      "description": "List all Quicken category tags with their parent category hierarchy. Filter by expense or income."
+    },
+    {
+      "name": "query_transactions",
+      "description": "Query transactions with filters: date range, account types/names, amount range, payee search, category. Returns one row per split entry."
+    },
+    {
+      "name": "spending_by_category",
+      "description": "Aggregate spending by category or parent category for a date range."
+    },
+    {
+      "name": "spending_over_time",
+      "description": "Monthly spending totals over a date range, optionally broken down by category."
+    },
+    {
+      "name": "search_payees",
+      "description": "Search payees by name with transaction counts."
+    },
+    {
+      "name": "list_portfolio",
+      "description": "List investment holdings with shares, cost basis, and optional live or stored price quotes."
+    },
+    {
+      "name": "raw_query",
+      "description": "Run arbitrary SELECT queries against the database (500-row limit)."
+    }
+  ],
+  "compatibility": {
+    "platforms": ["darwin"],
+    "runtimes": { "node": ">=18.0.0" }
+  }
+}

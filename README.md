@@ -6,26 +6,29 @@ The database is **always opened read-only** — your Quicken data is never modif
 
 ## How it works
 
-Quicken For Mac stores data in a Core Data SQLite database inside a `.quicken` bundle in your Documents folder (e.g., `~/Documents/MyFinances.quicken/data`). This MCP server reads that database directly and exposes 7 query tools to Claude.
+Quicken For Mac stores data in a Core Data SQLite database inside a `.quicken` bundle in your Documents folder (e.g., `~/Documents/MyFinances.quicken/data`). This MCP server reads that database directly and exposes 8 query tools to Claude.
 
-## Quick start
+## Install
 
-### Claude Code
+### Claude Code (one-liner)
 
-Add to your project's `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "quicken": {
-      "command": "npx",
-      "args": ["-y", "quicken-mac-mcp"]
-    }
-  }
-}
+```bash
+claude mcp add quicken -- npx -y quicken-mac-mcp
 ```
 
-### Claude Desktop
+### Claude Code (plugin)
+
+```bash
+claude plugin install quicken-mac-mcp
+```
+
+This installs the plugin with the MCP server and a `/quicken` skill that guides Claude on how to best query your data.
+
+### Claude Desktop (MCPB drag-and-drop)
+
+Download `quicken-mac-mcp.mcpb` from the [latest GitHub release](https://github.com/dweekly/quicken-mac-mcp/releases) and drag it into Claude Desktop. It will prompt you for your database path (or auto-detect it).
+
+### Claude Desktop (manual JSON)
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
@@ -40,7 +43,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
-Restart Claude Desktop and you'll see a hammer icon with 7 tools available.
+Restart Claude Desktop and you'll see a hammer icon with 8 tools available.
 
 ### Custom database path
 
@@ -72,6 +75,7 @@ By default, the server auto-detects your Quicken database by scanning `~/Documen
 | `spending_by_category` | Aggregate spending by category or parent category for a date range. |
 | `spending_over_time` | Monthly spending totals, optionally broken down by category. |
 | `search_payees` | Search payees by name with transaction counts. |
+| `list_portfolio` | List investment holdings with shares, cost basis, and optional live or stored price quotes. |
 | `raw_query` | Run arbitrary SELECT queries (500-row limit). |
 
 ## Example prompts
@@ -118,6 +122,12 @@ npm run dev       # run server locally
 docker build -t quicken-mac-mcp .
 docker run --rm -v ~/Documents/YourFile.quicken:/data:ro quicken-mac-mcp
 ```
+
+## Disclaimer
+
+This project is an independent, community-developed open-source tool. It is **not** an official Intuit product and is not endorsed by, directly affiliated with, maintained by, or sponsored by Intuit Inc. or any of its subsidiaries. "Quicken" is a registered trademark of Intuit Inc. All product and company names are trademarks or registered trademarks of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
+
+This software is provided "as is," without warranty of any kind. The authors and contributors are not responsible for any damage, data loss, or other issues arising from its use. Always back up your financial data before using third-party tools.
 
 ## License
 

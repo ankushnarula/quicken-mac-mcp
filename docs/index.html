@@ -195,20 +195,23 @@
     </tbody>
   </table>
 
-  <h2>Quick start</h2>
+  <h2>Install</h2>
 
-  <h3>Claude Code</h3>
-  <p>Add to your project's <code>.mcp.json</code>:</p>
-  <pre><code>{
-  "mcpServers": {
-    "quicken": {
-      "command": "npx",
-      "args": ["-y", "quicken-mac-mcp"]
-    }
-  }
-}</code></pre>
+  <h3>Claude Code (one-liner)</h3>
+  <pre><code>claude mcp add quicken -- npx -y quicken-mac-mcp</code></pre>
 
-  <h3>Claude Desktop</h3>
+  <h3>Claude Code (plugin)</h3>
+  <pre><code>claude plugin install quicken-mac-mcp</code></pre>
+  <p>Installs the MCP server and a <code>/quicken</code> skill that guides Claude on how to best query your data.</p>
+
+  <h3>Claude Desktop (drag-and-drop)</h3>
+  <p>
+    Download <code>quicken-mac-mcp.mcpb</code> from the
+    <a href="https://github.com/dweekly/quicken-mac-mcp/releases">latest GitHub release</a>
+    and drag it into Claude Desktop. It will prompt you for your database path (or auto-detect it).
+  </p>
+
+  <h3>Claude Desktop (manual JSON)</h3>
   <p>Add to <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>:</p>
   <pre><code>{
   "mcpServers": {
@@ -288,6 +291,20 @@ npm run dev       # run server locally</code></pre>
   <h3>Docker</h3>
   <pre><code>docker build -t quicken-mac-mcp .
 docker run --rm -v ~/Documents/YourFile.quicken:/data:ro quicken-mac-mcp</code></pre>
+
+  <h2>Disclaimer</h2>
+  <p>
+    This project is an independent, community-developed open-source tool. It is <strong>not</strong>
+    an official Intuit product and is not endorsed by, directly affiliated with, maintained by, or
+    sponsored by Intuit Inc. or any of its subsidiaries. &ldquo;Quicken&rdquo; is a registered
+    trademark of Intuit Inc. All product and company names are trademarks or registered trademarks
+    of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
+  </p>
+  <p>
+    This software is provided &ldquo;as is,&rdquo; without warranty of any kind. The authors and
+    contributors are not responsible for any damage, data loss, or other issues arising from its use.
+    Always back up your financial data before using third-party tools.
+  </p>
 
   <footer>
     MIT License &middot; <a href="https://github.com/dweekly">David Weekly</a>
