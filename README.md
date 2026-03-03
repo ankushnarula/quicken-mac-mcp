@@ -9,6 +9,10 @@ An [MCP server](https://modelcontextprotocol.io/) that gives Claude read-only ac
 
 The database is **always opened read-only** — your Quicken data is never modified.
 
+## Requirements
+
+**Quicken For Mac must be open** while using this server. Quicken encrypts its database file when the app is closed — the data is only readable while Quicken is running.
+
 ## How it works
 
 Quicken For Mac stores data in a Core Data SQLite database inside a `.quicken` bundle in your Documents folder (e.g., `~/Documents/MyFinances.quicken/data`). This MCP server reads that database directly and exposes 8 query tools to Claude.
@@ -68,7 +72,7 @@ If you have multiple Quicken files, or your `.quicken` bundle isn't in `~/Docume
 }
 ```
 
-By default, the server auto-detects your Quicken database by scanning `~/Documents` for `.quicken` bundles. If exactly one is found, it uses that. If multiple are found, it lists them and asks you to specify which one.
+By default, the server auto-detects your Quicken database by picking the most recently modified `.quicken` bundle in `~/Documents`.
 
 ## Tools
 

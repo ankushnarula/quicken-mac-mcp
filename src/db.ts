@@ -76,12 +76,32 @@ export function openDatabase(dbPath?: string): Database.Database {
  * The server can start and register with the MCP host without requiring a
  * valid database path. If the database can't be opened when a tool is called,
  * the error propagates to the tool handler which returns a helpful message.
+ *
+ * The connection is cached but validated on each access — if Quicken replaces
+ * the database file (e.g., after opening/closing the app), we detect the inode
+ * change and reconnect.
  */
 export function createDbAccessor(dbPath?: string): () => Database.Database {
   let db: Database.Database | null = null;
+  let cachedIno: bigint | null = null;
+
   return () => {
+    const resolvedPath = dbPath || process.env.QUICKEN_DB_PATH || detectQuickenDb();
+
+    // Check if the file on disk has changed (Quicken replaces the file on open/close)
+    try {
+      const currentIno = statSync(resolvedPath, { bigint: true }).ino;
+      if (db && cachedIno !== null && cachedIno !== currentIno) {
+        db.close();
+        db = null;
+      }
+      cachedIno = currentIno;
+    } catch {
+      // File doesn't exist — let openDatabase handle the error
+    }
+
     if (!db) {
-      db = openDatabase(dbPath);
+      db = new Database(resolvedPath, { readonly: true });
     }
     return db;
   };

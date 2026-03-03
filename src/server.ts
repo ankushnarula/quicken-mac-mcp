@@ -28,6 +28,39 @@ function sanitizeError(err: any): string {
   return msg.replace(/(?:\/[\w.-]+){2,}/g, "<path>");
 }
 
+/** Check if Quicken For Mac is currently running. */
+function isQuickenRunning(): boolean {
+  try {
+    const { execFileSync } = require("child_process");
+    const result = execFileSync("pgrep", ["-x", "Quicken"], { timeout: 2000 }).toString().trim();
+    return result.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/** Format an error for MCP tool response, with extra help for common issues. */
+function formatToolError(err: any) {
+  const msg = String(err?.message ?? err);
+  let text = `Error: ${sanitizeError(err)}`;
+  if (msg.includes("no such table")) {
+    if (!isQuickenRunning()) {
+      text +=
+        "\n\nQuicken For Mac is not running. Quicken encrypts its database when " +
+        "the app is closed. Please ask the user if they'd like to launch Quicken, " +
+        "then run: open -a 'Quicken' and retry.";
+    } else {
+      text +=
+        "\n\nQuicken is running but the database tables are missing. " +
+        "The QUICKEN_DB_PATH may be pointing to the wrong file.";
+    }
+  }
+  return {
+    isError: true as const,
+    content: [{ type: "text" as const, text }],
+  };
+}
+
 /**
  * Wrap a tool handler with database access and error handling.
  * Calls getDb() lazily so the server can start without a valid database.
@@ -41,10 +74,7 @@ function safeTool<A>(
     try {
       return jsonContent(fn(getDb(), args));
     } catch (err: any) {
-      return {
-        isError: true as const,
-        content: [{ type: "text" as const, text: `Error: ${sanitizeError(err)}` }],
-      };
+      return formatToolError(err);
     }
   };
 }
@@ -58,10 +88,7 @@ function safeToolAsync<A>(
     try {
       return jsonContent(await fn(getDb(), args));
     } catch (err: any) {
-      return {
-        isError: true as const,
-        content: [{ type: "text" as const, text: `Error: ${sanitizeError(err)}` }],
-      };
+      return formatToolError(err);
     }
   };
 }
@@ -92,6 +119,11 @@ export function createServer(getDb: () => Database.Database): McpServer {
         "- Account types are case-insensitive. Common types: checking, creditcard, savings, mortgage, retirementira, asset, liability, loan.",
         "- spending_by_category and spending_over_time default to checking + creditcard accounts only. Include other types explicitly if the user asks about all spending.",
         "- query_transactions returns one row per split entry — a single transaction may produce multiple rows if split across categories.",
+        "",
+        "## Prerequisites",
+        "- IMPORTANT: Quicken For Mac must be open for this server to work. Quicken encrypts its database when the app is closed.",
+        "- If a tool returns 'no such table' and Quicken is not running, offer to launch it for the user with: open -a 'Quicken'",
+        "- After launching Quicken, wait a few seconds for it to decrypt the database, then retry the tool call.",
         "",
         "## Database auto-detection",
         "- If QUICKEN_DB_PATH is not set, the server auto-detects by picking the most recently modified .quicken bundle in ~/Documents.",
