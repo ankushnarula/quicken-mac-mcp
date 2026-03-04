@@ -18,7 +18,7 @@ Finance
 - Aggregate spending by category or parent category for any date range
 - Track monthly spending trends over time with optional category breakdowns
 - Search payees by name with transaction counts
-- View investment holdings with shares, cost basis, and optional live price quotes
+- View investment holdings with shares, cost basis, and stored Quicken price quotes
 - Explore the raw database with arbitrary SELECT queries (500-row limit)
 - Auto-detects your Quicken database — no configuration needed for most users
 - Always read-only — your financial data is never modified
@@ -37,7 +37,7 @@ Finance
 - Tool: spending_by_category — Aggregate spending by category for a date range
 - Tool: spending_over_time — Monthly spending totals with optional category breakdown
 - Tool: search_payees — Search payees by name with transaction counts
-- Tool: list_portfolio — Investment holdings with shares, cost basis, and optional live quotes
+- Tool: list_portfolio — Investment holdings with shares, cost basis, and stored price quotes
 - Tool: raw_query — Run arbitrary SELECT queries (500-row limit)
 
 ## Tags

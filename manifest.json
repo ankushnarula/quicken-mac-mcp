@@ -56,7 +56,7 @@
     },
     {
       "name": "list_portfolio",
-      "description": "List investment holdings with shares, cost basis, and optional live or stored price quotes."
+      "description": "List investment holdings with shares, cost basis, and stored Quicken price quotes."
     },
     {
       "name": "raw_query",

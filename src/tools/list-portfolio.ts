@@ -2,8 +2,7 @@
  * list_portfolio tool — List current investment holdings.
  *
  * Joins ZLOT/ZPOSITION/ZSECURITY/ZACCOUNT to produce a portfolio view
- * with shares, cost basis, and optional price enrichment from stored
- * Quicken quotes or live Yahoo Finance data.
+ * with shares, cost basis, and price enrichment from stored Quicken quotes.
  */
 
 import type Database from "better-sqlite3";
@@ -24,7 +23,6 @@ interface DbQuote {
 
 interface PortfolioArgs {
   account_names?: string[];
-  include_quotes?: boolean;
 }
 
 function queryHoldings(db: Database.Database, args: PortfolioArgs): HoldingRow[] {
@@ -88,60 +86,9 @@ function queryDbQuotes(db: Database.Database): Map<string, DbQuote> {
   return map;
 }
 
-/**
- * Fetch current market prices from Yahoo Finance for a list of ticker symbols.
- *
- * Uses the v7 quote endpoint with a 10-second timeout. Returns a map of
- * ticker -> regularMarketPrice. Tickers not found in the response are
- * absent from the map. Throws on network error or non-200 response.
- */
-export async function fetchLiveQuotes(tickers: string[]): Promise<Map<string, number>> {
-  const map = new Map<string, number>();
-  if (tickers.length === 0) return map;
-
-  const symbols = tickers.join(",");
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}&fields=symbol,regularMarketPrice`;
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    if (!res.ok) throw new Error(`Yahoo Finance returned ${res.status}`);
-    const data = (await res.json()) as any;
-
-    for (const q of data.quoteResponse?.result ?? []) {
-      if (q.symbol && typeof q.regularMarketPrice === "number") {
-        map.set(q.symbol, q.regularMarketPrice);
-      }
-    }
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  return map;
-}
-
-export async function listPortfolio(db: Database.Database, args: PortfolioArgs) {
+export function listPortfolio(db: Database.Database, args: PortfolioArgs) {
   const holdings = queryHoldings(db, args);
-
-  // Determine price source
-  let dbQuotes = new Map<string, DbQuote>();
-  let liveQuotes = new Map<string, number>();
-
-  if (args.include_quotes) {
-    const tickers = [
-      ...new Set(holdings.map((h) => h.ticker).filter((t): t is string => t != null)),
-    ];
-    try {
-      liveQuotes = await fetchLiveQuotes(tickers);
-    } catch {
-      // Fall back to DB quotes if Yahoo fails
-    }
-  }
-
-  // Always load DB quotes as fallback / default
-  dbQuotes = queryDbQuotes(db);
+  const dbQuotes = queryDbQuotes(db);
 
   return holdings.map((h) => {
     const result: Record<string, unknown> = {
@@ -152,29 +99,14 @@ export async function listPortfolio(db: Database.Database, args: PortfolioArgs) 
       cost_basis: h.cost_basis,
     };
 
-    // Try live quote first, then DB quote
-    let price: number | undefined;
-    let priceDate: string | undefined;
-    let priceSource: string | undefined;
-
-    if (h.ticker && liveQuotes.has(h.ticker)) {
-      price = liveQuotes.get(h.ticker)!;
-      priceSource = "live";
-    } else if (h.ticker && dbQuotes.has(h.ticker)) {
+    if (h.ticker && dbQuotes.has(h.ticker)) {
       const dbq = dbQuotes.get(h.ticker)!;
-      price = dbq.price;
-      priceDate = dbq.quote_date;
-      priceSource = "db";
-    }
-
-    if (price != null) {
-      result.price = price;
-      if (priceDate) result.price_date = priceDate;
-      result.price_source = priceSource;
-      result.market_value = Math.round(h.current_shares * price * 100) / 100;
+      result.price = dbq.price;
+      result.price_date = dbq.quote_date;
+      result.market_value = Math.round(h.current_shares * dbq.price * 100) / 100;
 
       if (h.cost_basis > 0) {
-        const gainLoss = Math.round((h.current_shares * price - h.cost_basis) * 100) / 100;
+        const gainLoss = Math.round((h.current_shares * dbq.price - h.cost_basis) * 100) / 100;
         result.gain_loss = gainLoss;
         result.gain_loss_pct = Math.round((gainLoss / h.cost_basis) * 10000) / 100;
       }

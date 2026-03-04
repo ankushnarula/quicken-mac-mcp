@@ -387,8 +387,8 @@ describeWithDb("raw_query", () => {
 // --- list_portfolio ---
 
 describeWithDb("list_portfolio", () => {
-  it("returns holdings with expected fields", async () => {
-    const result = await listPortfolio(db, {});
+  it("returns holdings with expected fields", () => {
+    const result = listPortfolio(db, {});
     expect(result.length).toBeGreaterThan(0);
     const first = result[0];
     expect(first).toHaveProperty("account");
@@ -398,26 +398,25 @@ describeWithDb("list_portfolio", () => {
     expect(first).toHaveProperty("cost_basis");
   });
 
-  it("only returns holdings with non-zero shares", async () => {
-    const result = await listPortfolio(db, {});
+  it("only returns holdings with non-zero shares", () => {
+    const result = listPortfolio(db, {});
     result.forEach((r: any) => {
       expect(r.current_shares).toBeGreaterThan(0);
     });
   });
 
-  it("enriches with DB quotes by default", async () => {
-    const result = await listPortfolio(db, {});
+  it("enriches with DB quotes by default", () => {
+    const result = listPortfolio(db, {});
     const withPrice = result.filter((r: any) => r.price != null);
     expect(withPrice.length).toBeGreaterThan(0);
     withPrice.forEach((r: any) => {
-      expect(r.price_source).toBe("db");
       expect(r).toHaveProperty("price_date");
       expect(r).toHaveProperty("market_value");
     });
   });
 
-  it("rounds money values to 2 decimal places", async () => {
-    const result = await listPortfolio(db, {});
+  it("rounds money values to 2 decimal places", () => {
+    const result = listPortfolio(db, {});
     result.forEach((r: any) => {
       if (r.market_value != null) {
         const str = r.market_value.toString();
@@ -432,12 +431,12 @@ describeWithDb("list_portfolio", () => {
     });
   });
 
-  it("filters by account_names", async () => {
-    const all = await listPortfolio(db, {});
+  it("filters by account_names", () => {
+    const all = listPortfolio(db, {});
     const accounts = [...new Set(all.map((r: any) => r.account))];
     expect(accounts.length).toBeGreaterThan(1);
 
-    const filtered = await listPortfolio(db, { account_names: [accounts[0]] });
+    const filtered = listPortfolio(db, { account_names: [accounts[0]] });
     expect(filtered.length).toBeGreaterThan(0);
     filtered.forEach((r: any) => {
       expect(r.account).toBe(accounts[0]);
@@ -445,13 +444,13 @@ describeWithDb("list_portfolio", () => {
     expect(filtered.length).toBeLessThan(all.length);
   });
 
-  it("returns empty array for nonexistent account", async () => {
-    const result = await listPortfolio(db, { account_names: ["zzz_nonexistent_999"] });
+  it("returns empty array for nonexistent account", () => {
+    const result = listPortfolio(db, { account_names: ["zzz_nonexistent_999"] });
     expect(result).toEqual([]);
   });
 
-  it("omits gain_loss_pct when cost_basis is 0", async () => {
-    const result = await listPortfolio(db, {});
+  it("omits gain_loss_pct when cost_basis is 0", () => {
+    const result = listPortfolio(db, {});
     const zeroCost = result.filter((r: any) => r.cost_basis === 0 && r.price != null);
     zeroCost.forEach((r: any) => {
       expect(r).not.toHaveProperty("gain_loss_pct");
@@ -459,10 +458,4 @@ describeWithDb("list_portfolio", () => {
     });
   });
 
-  // Skipped: requires real network call to Yahoo Finance
-  it.skip("fetches live quotes from Yahoo Finance", async () => {
-    const result = await listPortfolio(db, { include_quotes: true });
-    const live = result.filter((r: any) => r.price_source === "live");
-    expect(live.length).toBeGreaterThan(0);
-  });
 });

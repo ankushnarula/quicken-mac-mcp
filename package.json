@@ -1,6 +1,6 @@
 {
   "name": "quicken-mac-mcp",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "mcpName": "io.github.dweekly/quicken-mac-mcp",
   "description": "MCP server providing read-only access to Quicken For Mac financial data via Claude",
   "type": "module",
@@ -45,7 +45,7 @@
     "better-sqlite3": "^12.6.2"
   },
   "devDependencies": {
-    "@anthropic-ai/mcpb": "^0.1.0",
+    "@anthropic-ai/mcpb": "^2.1.2",
     "@eslint/js": "^10.0.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.3.3",

@@ -96,8 +96,12 @@ export function createDbAccessor(dbPath?: string): () => Database.Database {
         db = null;
       }
       cachedIno = currentIno;
-    } catch {
-      // File doesn't exist — let openDatabase handle the error
+    } catch (err: any) {
+      if (err?.code === "ENOENT") {
+        // File doesn't exist — let openDatabase below surface the error
+      } else {
+        throw err;
+      }
     }
 
     if (!db) {

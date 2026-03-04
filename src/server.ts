@@ -7,7 +7,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import type Database from "better-sqlite3";
+import Database from "better-sqlite3";
 import { listAccounts } from "./tools/list-accounts.js";
 import { listCategories } from "./tools/list-categories.js";
 import { queryTransactions } from "./tools/query-transactions.js";
@@ -16,6 +16,7 @@ import { spendingOverTime } from "./tools/spending-over-time.js";
 import { searchPayees } from "./tools/search-payees.js";
 import { rawQuery } from "./tools/raw-query.js";
 import { listPortfolio } from "./tools/list-portfolio.js";
+import { detectQuickenDb } from "./db.js";
 
 /** Helper to wrap a tool result as MCP text content. */
 function jsonContent(data: unknown) {
@@ -28,12 +29,23 @@ function sanitizeError(err: any): string {
   return msg.replace(/(?:\/[\w.-]+){2,}/g, "<path>");
 }
 
-/** Check if Quicken For Mac is currently running. */
-function isQuickenRunning(): boolean {
+/**
+ * Check if the Quicken database is decrypted (i.e. Quicken is running) by
+ * looking for core tables. When Quicken is closed it replaces the DB file with
+ * a small encrypted stub that has none of the expected tables.
+ */
+function isDatabaseDecrypted(): boolean {
   try {
-    const { execFileSync } = require("child_process");
-    const result = execFileSync("pgrep", ["-x", "Quicken"], { timeout: 2000 }).toString().trim();
-    return result.length > 0;
+    const resolvedPath = process.env.QUICKEN_DB_PATH || detectQuickenDb();
+    const db = new Database(resolvedPath, { readonly: true });
+    try {
+      const row = db
+        .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='ZACCOUNT' LIMIT 1")
+        .get();
+      return !!row;
+    } finally {
+      db.close();
+    }
   } catch {
     return false;
   }
@@ -44,7 +56,7 @@ function formatToolError(err: any) {
   const msg = String(err?.message ?? err);
   let text = `Error: ${sanitizeError(err)}`;
   if (msg.includes("no such table")) {
-    if (!isQuickenRunning()) {
+    if (!isDatabaseDecrypted()) {
       text +=
         "\n\nQuicken For Mac is not running. Quicken encrypts its database when " +
         "the app is closed. Please ask the user if they'd like to launch Quicken, " +
@@ -79,20 +91,6 @@ function safeTool<A>(
   };
 }
 
-/** Async variant of safeTool for tools that return promises. */
-function safeToolAsync<A>(
-  getDb: () => Database.Database,
-  fn: (db: Database.Database, args: A) => Promise<unknown>
-) {
-  return async (args: A) => {
-    try {
-      return jsonContent(await fn(getDb(), args));
-    } catch (err: any) {
-      return formatToolError(err);
-    }
-  };
-}
-
 export function createServer(getDb: () => Database.Database): McpServer {
   const server = new McpServer(
     {
@@ -110,7 +108,7 @@ export function createServer(getDb: () => Database.Database): McpServer {
         "- For specific transactions, use query_transactions with date/amount/payee/category filters.",
         "- For spending analysis, prefer spending_by_category or spending_over_time over raw queries — they handle the category joins and date bucketing correctly.",
         "- Use search_payees to find the exact payee name before filtering transactions (payee names in Quicken are often different from what users expect).",
-        "- Use list_portfolio for investment holdings. Set include_quotes=true only if the user asks for current prices (this calls Yahoo Finance).",
+        "- Use list_portfolio for investment holdings (uses stored Quicken quotes for prices).",
         "- Use raw_query only when the other tools can't answer the question. The database uses Core Data schema — tables are prefixed with Z and columns with Z.",
         "",
         "## Important conventions",
@@ -245,20 +243,14 @@ export function createServer(getDb: () => Database.Database): McpServer {
 
   server.tool(
     "list_portfolio",
-    "List current investment holdings across all brokerage/retirement accounts. Shows shares, cost basis, and optionally enriches with current prices (from stored Quicken quotes or live Yahoo Finance data) to compute market value and gain/loss.",
+    "List current investment holdings across all brokerage/retirement accounts. Shows shares, cost basis, and enriches with stored Quicken quotes to compute market value and gain/loss.",
     {
       account_names: z
         .array(z.string())
         .optional()
         .describe("Filter to specific account names"),
-      include_quotes: z
-        .boolean()
-        .optional()
-        .describe(
-          "Fetch live prices from Yahoo Finance (default: false, uses stored Quicken quotes). Note: sends your ticker symbols to Yahoo's API."
-        ),
     },
-    safeToolAsync(getDb, listPortfolio)
+    safeTool(getDb, listPortfolio)
   );
 
   server.tool(

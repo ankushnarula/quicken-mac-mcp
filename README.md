@@ -85,7 +85,7 @@ By default, the server auto-detects your Quicken database by picking the most re
 | `spending_by_category` | Aggregate spending by category or parent category for a date range. |
 | `spending_over_time` | Monthly spending totals, optionally broken down by category. |
 | `search_payees` | Search payees by name with transaction counts. |
-| `list_portfolio` | List investment holdings with shares, cost basis, and optional live or stored price quotes. |
+| `list_portfolio` | List investment holdings with shares, cost basis, and stored Quicken price quotes. |
 | `raw_query` | Run arbitrary SELECT queries (500-row limit). |
 
 ## Example prompts
