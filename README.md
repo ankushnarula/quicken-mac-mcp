@@ -107,7 +107,7 @@ Quicken For Mac uses Core Data with these key tables:
 | `ZACCOUNT` | Bank accounts, credit cards, investment accounts |
 | `ZTRANSACTION` | Individual transactions |
 | `ZCASHFLOWTRANSACTIONENTRY` | Split line items (where categories live) |
-| `ZTAG` (Z_ENT=79) | Category tags with parent hierarchy |
+| `ZTAG` | Category tags with parent hierarchy (Z_ENT looked up at runtime) |
 | `ZUSERPAYEE` | Payee names |
 
 Dates use **Core Data epoch** (seconds since 2001-01-01). The server handles all date conversion automatically — you pass ISO 8601 dates, it returns ISO 8601 dates.
@@ -132,6 +132,10 @@ npm run dev       # run server locally
 docker build -t quicken-mac-mcp .
 docker run --rm -v ~/Documents/YourFile.quicken:/data:ro quicken-mac-mcp
 ```
+
+## Contributors
+
+- [Manish Mukherjee](https://github.com/manishie) — fixed dynamic `Z_ENT` lookup for CategoryTag ([#4](https://github.com/dweekly/quicken-mac-mcp/pull/4)), added `account_names` filter and date fallback for imported transactions ([#5](https://github.com/dweekly/quicken-mac-mcp/pull/5))
 
 ## Disclaimer
 
