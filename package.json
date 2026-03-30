@@ -11,6 +11,9 @@
     "url": "git+https://github.com/dweekly/quicken-mac-mcp.git"
   },
   "homepage": "https://github.com/dweekly/quicken-mac-mcp#readme",
+  "engines": {
+    "node": ">=18"
+  },
   "keywords": [
     "quicken",
     "mcp",
@@ -42,7 +45,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "better-sqlite3": "^12.8.0"
+    "better-sqlite3": "^11.10.0"
   },
   "devDependencies": {
     "@anthropic-ai/mcpb": "^2.1.2",
