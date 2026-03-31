@@ -14,6 +14,44 @@
 - `diagnosePath` helper provides detailed diagnostics (file existence, permissions, file size) when the database file cannot be opened.
 - 12 new unit tests for error sanitization and error formatting.
 
+## 1.2.1
+
+### Fixed
+
+- Downgraded better-sqlite3 to v11 for Node 18 compatibility (v12 requires Node 20+).
+
+### Changed
+
+- Updated transitive dependencies (node-forge, path-to-regexp, picomatch, flatted).
+
+## 1.2.0
+
+### Added
+
+- 60 integration tests validating cross-tool consistency, category hierarchy, date handling, spending aggregation, portfolio math, raw query safety, and schema integrity.
+- `docs/schema.md`: comprehensive 3200-line Quicken 8.5 Core Data schema reference (84 entities, 85 tables, 251 indexes).
+- `account_names` filter for `query_transactions`, `spending_by_category`, and `spending_over_time` tools.
+- Date fallback: transactions with null `ZPOSTEDDATE` now fall back to `ZTIMESTAMP` (fixes imported/historical accounts).
+- Contributor credit for Manish Mukherjee in README.
+
+### Fixed
+
+- Hardcoded `Z_ENT=79` for CategoryTag lookups replaced with dynamic lookup from `Z_PRIMARYKEY` table (contributed by @manishie).
+
+## 1.1.0
+
+### Changed
+
+- Removed live Yahoo Finance quote fetching from `list_portfolio`; uses only stored Quicken quotes. Keeps the MCP focused and avoids external API calls.
+- Replaced `pgrep` shell-out with native `ZACCOUNT` table check to detect whether Quicken has decrypted the database.
+- Narrowed catch in `createDbAccessor` to only swallow ENOENT, re-throwing permission and other filesystem errors.
+
+## 1.0.3
+
+### Added
+
+- MCP Registry metadata (`server.json`) for discovery via the MCP Registry.
+
 ## 1.0.2
 
 ### Fixed
@@ -27,6 +65,12 @@
 - Database connection is now lazy — deferred to first tool call rather than opening eagerly at startup.
 - Tool error handling unified via `safeTool` wrapper, removing per-tool try/catch boilerplate.
 - MCP server instructions now guide the calling agent to confirm the auto-detected Quicken file with the user and suggest setting `QUICKEN_DB_PATH` to disambiguate.
+
+## 1.0.1
+
+### Changed
+
+- Prepared for open-source release (license, README, packaging).
 
 ## 1.0.0
 
