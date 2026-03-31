@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.2
+
+### Fixed
+
+- Native module version mismatch errors (e.g., npx caching a better-sqlite3 build for a different Node.js version) now produce actionable diagnostics instead of the misleading "unable to open database file" message.
+- `sanitizeError` regex no longer swallows diagnostic text after filesystem paths; NODE_MODULE_VERSION info is now preserved in error output.
+
+### Added
+
+- Startup validation: the server eagerly tests the better-sqlite3 native module via an in-memory database and exits with a clear message if there is a version mismatch.
+- `formatToolError` now detects `NODE_MODULE_VERSION`, `dlopen`, and `MODULE_NOT_FOUND` errors and suggests `rm -rf ~/.npm/_npx` as a fix.
+- `diagnosePath` helper provides detailed diagnostics (file existence, permissions, file size) when the database file cannot be opened.
+- 12 new unit tests for error sanitization and error formatting.
+
 ## 1.0.2
 
 ### Fixed
